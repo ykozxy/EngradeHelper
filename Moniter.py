@@ -51,8 +51,8 @@ class WebDriver:
             if need_login:
                 print("Login...")
                 self.login()
-            print("Change course category...")
-            self.change_course_category()
+                print("Change course category...")
+                self.change_course_category()
             c = self.get_course_list()
             change_list = []
             for i in range(len(c)):
