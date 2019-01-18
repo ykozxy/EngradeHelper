@@ -232,14 +232,14 @@ def notify(
         try:
             from win10toast import ToastNotifier
 
-            ToastNotifier().show_toast(title, content, duration=10)
+            ToastNotifier().show_toast(title, content.split("\n")[0], duration=10)
         except ImportError:
             pass
     elif platform.system() == "Darwin":
         # MacOS
         from subprocess import call
 
-        cmd = 'display notification "{}" with title "{}"'.format(content, title)
+        cmd = 'display notification "{}" with title "{}"'.format(content.split("\n")[0], title)
         call(["osascript", "-e", cmd])
 
     if email_notify:
@@ -248,7 +248,7 @@ def notify(
         from email.header import Header
 
         message = MIMEText(content, "plain", "utf-8")
-        message["From"] = Header("Engrade Helper <autobox@test.com>", "utf-8")
+        message["From"] = Header("Engrade Helper <autobot@test.com>", "utf-8")
         message["To"] = Header("You <{}>".format(email_data["mail_user"]))
         message["Subject"] = Header(title, "utf-8")
         receivers = [email_data["email_receivers"]]
@@ -259,4 +259,9 @@ def notify(
 
 
 if __name__ == "__main__":
-    WebDriver().start_loop()
+    for t in range(1, 6):
+        # noinspection PyUnresolvedReferences
+        try:
+            WebDriver().start_loop()
+        except selenium.common.exceptions.TimeoutException:
+            print("Timeout! Retry time = " + str(t))
