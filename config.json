@@ -1,0 +1,17 @@
+{
+  "Engrade": {
+    "username": "",
+    "password": ""
+  },
+  "wait_time": 1800,
+  "random_time_margin": 300,
+  "email_notification": true,
+  "email_receivers": [
+    ""
+  ],
+  "email_sender": {
+    "smtp_host": "",
+    "address": "",
+    "password": ""
+  }
+}
