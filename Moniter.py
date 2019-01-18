@@ -196,8 +196,7 @@ class WebDriver:
             if detail != self.previous_data[course_name]:
                 print(course_name + " changed!")
                 is_change = True
-        else:
-            self.previous_data[course_name] = detail
+        self.previous_data[course_name] = detail
         self.driver.get(url)
         return is_change
 
