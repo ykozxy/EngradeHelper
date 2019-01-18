@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import pickle
 import random
@@ -34,12 +35,12 @@ class WebDriver:
         """
         主循环
         """
-        print("Load config...")
+        log.info("Load config...")
         self.load_config()
-        print("Open Engrade...")
+        log.info("Open Engrade...")
         self.driver.get("https://engradepro.com")
         while True:
-            print("Load data...")
+            log.info("Load data...")
             self.load_data()
             need_login = True
             # noinspection PyUnresolvedReferences
@@ -49,9 +50,9 @@ class WebDriver:
                 # 已经在主页面
                 need_login = False
             if need_login:
-                print("Login...")
+                log.info("Login...")
                 self.login()
-                print("Change course category...")
+                log.info("Change course category...")
                 self.change_course_category()
             c = self.get_course_list()
             change_list = []
@@ -61,7 +62,7 @@ class WebDriver:
                 c = self.get_course_list()
                 if is_change:
                     course = c[i][0].text
-                    print("Change detected for {}!".format(course))
+                    log.info("Change detected for {}!".format(course))
                     if len(c[i]) <= 2:
                         # 有一行没有成绩则列数为2
                         score = "NO SCORE"
@@ -99,15 +100,14 @@ class WebDriver:
                         "mail_pass": self.mail_pass,
                     },
                 )
-            print("Waiting...")
             wait = random.randint(
                 self.wait_time - self.random_time_margin,
                 self.wait_time + self.random_time_margin,
             )
+            log.info("Waiting for {} seconds...".format(wait))
             time.sleep(wait)
             # 刷新页面，以防被登出
             self.driver.refresh()
-            print()
 
     def load_config(self):
         """
@@ -180,7 +180,7 @@ class WebDriver:
         """
         url = self.driver.current_url
         course_name = course[0].text
-        print("Get detail for {}...".format(course_name))
+        log.info("Get detail for {}...".format(course_name))
         course[0].click()
 
         # Navigate to semester detail
@@ -194,7 +194,6 @@ class WebDriver:
         is_change = False
         if course_name in self.previous_data.keys():
             if detail != self.previous_data[course_name]:
-                print(course_name + " changed!")
                 is_change = True
         self.previous_data[course_name] = detail
         self.driver.get(url)
@@ -232,7 +231,9 @@ def notify(
             from win10toast import ToastNotifier
 
             ToastNotifier().show_toast(title, content.split("\n")[0], duration=10)
+            log.info("Show notification on Windows")
         except ImportError:
+            log.warn("Fail to show notification on Windows")
             pass
     elif platform.system() == "Darwin":
         # MacOS
@@ -240,6 +241,7 @@ def notify(
 
         cmd = 'display notification "{}" with title "{}"'.format(content.split("\n")[0], title)
         call(["osascript", "-e", cmd])
+        log.info("Show notification on MacOS")
 
     if email_notify:
         import smtplib
@@ -255,12 +257,29 @@ def notify(
         smtp_obj.connect(email_data["mail_host"], 25)
         smtp_obj.login(email_data["mail_user"], email_data["mail_pass"])
         smtp_obj.sendmail(email_data["mail_user"], receivers, message.as_string())
+        log.info("Email notify success")
+    else:
+        log.info("Pass email notify")
 
 
 if __name__ == "__main__":
+    log = logging.Logger("Logger", logging.INFO)
+    formatter = logging.Formatter("%(asctime)s - %(levelname)s: %(message)s")
+    fh = logging.FileHandler("EngradeHelper.log")
+    fh.setFormatter(formatter)
+    log.addHandler(fh)
+    sh = logging.StreamHandler(__import__("sys").stdout)
+    sh.setFormatter(formatter)
+    log.addHandler(sh)
+
     for t in range(1, 6):
         # noinspection PyUnresolvedReferences
         try:
             WebDriver().start_loop()
         except selenium.common.exceptions.TimeoutException:
-            print("Timeout! Retry time = " + str(t))
+            log.warning("Timeout! Retry = " + str(t))
+            notify("EngradeHelper", "Connection timeout. Retry = " + str(t))
+        except Exception as e:
+            log.critical("Unknown Error! Detail:" + str(e))
+            notify("EngradeHelper", "Unknown Error! Detail stored in log file, please report it on Github.")
+            break
