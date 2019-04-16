@@ -5,7 +5,7 @@
   },
   "wait_time": 1800,
   "random_time_margin": 300,
-  "email_notification": true,
+  "email_notification": false,
   "email_receivers": [
     ""
   ],
@@ -13,5 +13,7 @@
     "smtp_host": "",
     "address": "",
     "password": ""
-  }
+  },
+  "Bark_notification": false,
+  "Bark_api": ""
 }
