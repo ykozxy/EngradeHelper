@@ -2,5 +2,6 @@
 .idea/
 EngradeHelper.iml
 chromedriver.exe
-cookies.cache
 data.cache
+EngradeHelper.log
+Moniter.pyw
